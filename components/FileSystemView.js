@@ -1,50 +1,36 @@
 import React from 'react'
 import { FileSystem } from 'expo'
-import { Text } from 'react-native'
+import { View, Text } from 'react-native'
 
 export default class FileSystemView extends React.Component {
-  constructor () {
-    super()
-    this.documentDirectory = null
-    this.cacheDirectory = null
-  }
+  state = {}
 
-  componentWillMount () {
-    console.log(FileSystem.documentDirectory)
-    FileSystem.readDirectoryAsync(FileSystem.documentDirectory)
-    .then((info) => {
-      console.log(info)
-      this.documentDirectory = info
-    })
-    .catch((error) => {
-      console.error(error)
-    })
-
-    FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
-    .then((info) => {
-      console.log(info)
-      this.cacheDirectory = info
-    })
-    .catch((error) => {
-      console.error(error)
-    })
-
-        // FileSystem.readAsStringAsync(
-        //   FileSystem.documentDirectory + 'RCTAsyncLocalStorage/manifest.json'
-        // )
-        // .then((info) => {
-        //   console.log('contents: ', info)
-        // })
+  async componentWillMount () {
+    try {
+      let documentDirectory = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory)
+      let cacheDirectory = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
+      console.log('document: ', documentDirectory)
+      console.log('cache: ', cacheDirectory)
+      await this.setState({
+        documentDirectory,
+        cacheDirectory
+      })
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   render () {
+    console.log('state: ', this.state)
     return (
-      <Text>
-        Storage
-        {this.documentDirectory}
-        Cache
-        {this.cacheDirectory}
-      </Text>
+      <View>
+        <Text>
+          Storage: {this.state.documentDirectory}
+        </Text>
+        <Text>
+          Cache: {this.state.cacheDirectory}
+        </Text>
+      </View>
     )
   }
 }
