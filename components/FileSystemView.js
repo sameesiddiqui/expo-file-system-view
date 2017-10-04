@@ -10,6 +10,14 @@ export default class FileSystemView extends React.Component {
 
   async componentWillMount () {
     try {
+      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world')
+      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world/inner')
+      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world/another_one')
+      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/butter')
+      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/grass')
+      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/butter/milk')
+      // FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'hello_world_cache')
+      // FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money')
       let documentDirectory = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory)
       let cacheDirectory = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
       // console.log('document: ', documentDirectory)
