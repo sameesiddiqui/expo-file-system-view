@@ -8,7 +8,8 @@ export default class FileSystemView extends React.Component {
   state = {
     folderList: [],
     currentDirectory: '/',
-    previousDirectory: []
+    previousDirectory: [],
+    header: 'Home'
   }
 
   constructor () {
@@ -25,7 +26,7 @@ export default class FileSystemView extends React.Component {
       folderList = []
       folderList.push(
         <TouchableOpacity
-          onPress={() => this._changeDirectory(FileSystem.documentDirectory)}
+          onPress={() => this._changeDirectory(FileSystem.documentDirectory, 'documentDirectory')}
           key={'documentDirectory'}
           style={styles.fileRow}
         >
@@ -41,7 +42,7 @@ export default class FileSystemView extends React.Component {
       )
       folderList.push(
         <TouchableOpacity
-          onPress={() => this._changeDirectory(FileSystem.cacheDirectory)}
+          onPress={() => this._changeDirectory(FileSystem.cacheDirectory, 'cacheDirectory')}
           key={'cacheDirectory'}
           style={styles.fileRow}
         >
@@ -70,7 +71,7 @@ export default class FileSystemView extends React.Component {
       // possible images: folder, image, other (.json, etc, use </>)
       return (
         <TouchableOpacity
-          onPress={() => this._changeDirectory(currentDirectory + folder + '/')}
+          onPress={() => this._changeDirectory(currentDirectory, folder)}
           key={folder}
           style={styles.fileRow}
         >
@@ -88,11 +89,22 @@ export default class FileSystemView extends React.Component {
     return folderList
   }
 
-  async _changeDirectory (newDirectory) {
-    let folderList = await this._getFolderContents(newDirectory)
+  async _changeDirectory (newDirectory, folder) {
+    folder += '/'
+    let header = this.state.header
+    // check if we've picked a directory yet
+    if (folder === 'documentDirectory/' || folder === 'cacheDirectory/') {
+      header = folder
+      folder = ''
+    } else {
+      header += folder
+    }
+    let folderList = await this._getFolderContents(newDirectory + folder)
+
     this.setState({
       folderList: folderList,
-      currentDirectory: newDirectory
+      currentDirectory: newDirectory,
+      header: header
     })
   }
 
@@ -100,6 +112,11 @@ export default class FileSystemView extends React.Component {
     // console.log('state: ', this.state)
     return (
       <View style={styles.container}>
+        <View>
+          <Text>
+            {this.state.header}
+          </Text>
+        </View>
         {this.state.folderList}
       </View>
     )
