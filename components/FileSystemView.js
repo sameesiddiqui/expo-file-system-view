@@ -19,7 +19,7 @@ export default class FileSystemView extends React.Component {
   }
 
   componentWillMount () {
-    // this._addTestFiles()
+    this._addTestFiles()
 
     // show the folders that expo has read/write access to
     if (this.state.currentDirectory === '/') {
@@ -112,8 +112,8 @@ export default class FileSystemView extends React.Component {
     // console.log('state: ', this.state)
     return (
       <View style={styles.container}>
-        <View>
-          <Text>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>
             {this.state.header}
           </Text>
         </View>
@@ -122,6 +122,7 @@ export default class FileSystemView extends React.Component {
     )
   }
 
+  // optional add in if first time running the app. generates some files.
   _addTestFiles () {
     let options = {
       intermediates: true
@@ -135,6 +136,7 @@ export default class FileSystemView extends React.Component {
       FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/butter/milk', options)
       FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_me_outside/how_bow_dah', options)
       FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money', options)
+      FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'play_dot_cache/go_to_the_site', options)
     } catch (error) {
       console.log(error)
     }
@@ -144,27 +146,34 @@ export default class FileSystemView extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
-    borderWidth: 1,
-    borderColor: '#000',
+    // borderWidth: 1,
+    // borderColor: '#000',
     flex: .9,
     alignSelf: 'stretch'
   },
+  header: {
+    // borderWidth: 1,
+    // borderColor: '#000',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 15,
+    backgroundColor: '#2188FF',
+  },
+  headerText: {
+    color: '#F8F8F9',
+    fontSize: 16
+  },
   icons: {
-    color: '#056ECF',
+    color: '#2188FF',
     margin: 15
   },
   fileRow: {
-    borderWidth: 1,
-    borderColor: '#000',
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'stretch',
     justifyContent: 'flex-start'
   },
-  break: {
-    flex: 100,
-    height: 1,
-    backgroundColor: '#000',
-    flexDirection: 'row'
-  }
 })
