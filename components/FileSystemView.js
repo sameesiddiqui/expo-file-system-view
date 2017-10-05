@@ -1,13 +1,14 @@
 import React from 'react'
 import { FileSystem } from 'expo'
-import { TouchableOpacity, View, Text } from 'react-native'
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 
 export default class FileSystemView extends React.Component {
 
   state = {
     folderList: [],
     currentDirectory: '/',
-    previousDirectory: null
+    previousDirectory: []
   }
 
   constructor () {
@@ -18,7 +19,7 @@ export default class FileSystemView extends React.Component {
 
   componentWillMount () {
     // this._addTestFiles()
-    
+
     // show the folders that expo has read/write access to
     if (this.state.currentDirectory === '/') {
       folderList = []
@@ -26,7 +27,13 @@ export default class FileSystemView extends React.Component {
         <TouchableOpacity
           onPress={() => this._changeDirectory(FileSystem.documentDirectory)}
           key={'documentDirectory'}
+          style={styles.fileRow}
         >
+          <Ionicons
+            name="ios-folder"
+            size={32}
+            style={styles.icons}
+          />
           <Text>
             documentDirectory/
           </Text>
@@ -36,7 +43,13 @@ export default class FileSystemView extends React.Component {
         <TouchableOpacity
           onPress={() => this._changeDirectory(FileSystem.cacheDirectory)}
           key={'cacheDirectory'}
+          style={styles.fileRow}
         >
+          <Ionicons
+            name="ios-folder"
+            size={32}
+            style={styles.icons}
+          />
           <Text>
             cacheDirectory/
           </Text>
@@ -59,14 +72,19 @@ export default class FileSystemView extends React.Component {
         <TouchableOpacity
           onPress={() => this._changeDirectory(currentDirectory + folder + '/')}
           key={folder}
+          style={styles.fileRow}
         >
-          <Text>
+          <Ionicons
+            name="ios-folder"
+            size={32}
+            style={styles.icons} />
+          <Text
+            style={styles.text} >
             {folder}
           </Text>
         </TouchableOpacity>
       )
     })
-    console.log('folderList: ', folderList)
     return folderList
   }
 
@@ -81,7 +99,7 @@ export default class FileSystemView extends React.Component {
   render () {
     // console.log('state: ', this.state)
     return (
-      <View>
+      <View style={styles.container}>
         {this.state.folderList}
       </View>
     )
@@ -105,3 +123,31 @@ export default class FileSystemView extends React.Component {
     }
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'column',
+    borderWidth: 1,
+    borderColor: '#000',
+    flex: .9,
+    alignSelf: 'stretch'
+  },
+  icons: {
+    color: '#056ECF',
+    margin: 15
+  },
+  fileRow: {
+    borderWidth: 1,
+    borderColor: '#000',
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    justifyContent: 'flex-start'
+  },
+  break: {
+    flex: 100,
+    height: 1,
+    backgroundColor: '#000',
+    flexDirection: 'row'
+  }
+})
