@@ -16,6 +16,7 @@ export default class FileSystemView extends React.Component {
     super()
     this._changeDirectory = this._changeDirectory.bind(this)
     this._getFolderContents = this._getFolderContents.bind(this)
+    this._resolveItem = this._resolveItem.bind(this)
   }
 
   componentWillMount () {
@@ -63,35 +64,63 @@ export default class FileSystemView extends React.Component {
     })
   }
 
+  async _resolveItem (currentDirectory, item) {
+    let metadata = await FileSystem.getInfoAsync(currentDirectory + item)
+    if (metadata.isDirectory) {
+      return {
+        icon: 'ios-folder',
+        isDirectory: true
+      }
+    } else {
+      return {
+        icon: 'ios-code',
+        isDirectory: false
+      }
+    }
+  }
+
+  async _getFileContents (currentDirectory, file) {
+    console.log('This is a file!')
+  }
+
   async _getFolderContents (currentDirectory) {
     let contents = await FileSystem.readDirectoryAsync(currentDirectory)
-    console.log('contents: ', contents)
-    let folderList = await contents.map((folder) => {
-      // TODO: check if item is file or folder, don't append ending slash and change image
-      // possible images: folder, image, other (.json, etc, use </>)
+
+    // check if item is a folder or file
+    let contentsPromises = contents.map(async (item) => {
+      let info = await this._resolveItem(currentDirectory, item)
+      return info
+    })
+    let fileInfo = await Promise.all(contentsPromises)
+
+    let folderList = contents.map((item, i) => {
       return (
         <TouchableOpacity
-          onPress={() => this._changeDirectory(currentDirectory, folder)}
-          key={folder}
+          onPress={() => this._changeDirectory(currentDirectory, item, fileInfo[i].isDirectory)}
+          key={item}
           style={styles.fileRow}
         >
           <Ionicons
-            name="ios-folder"
+            name={fileInfo[i].icon}
             size={32}
             style={styles.icons} />
           <Text
             style={styles.text} >
-            {folder}
+            {item}
           </Text>
         </TouchableOpacity>
       )
     })
+    // console.log(folderList)
     return folderList
   }
 
-  async _changeDirectory (newDirectory, folder) {
+  async _changeDirectory (currentDirectory, folder, isDirectory = true) {
     folder += '/'
     let header = this.state.header
+    // add the folder to our navigation stack
+    let previousDirectory = this.state.previousDirectory
+    previousDirectory.push(folder)
     // check if we've picked a directory yet
     if (folder === 'documentDirectory/' || folder === 'cacheDirectory/') {
       header = folder
@@ -99,12 +128,13 @@ export default class FileSystemView extends React.Component {
     } else {
       header += folder
     }
-    let folderList = await this._getFolderContents(newDirectory + folder)
+    let folderList = await this._getFolderContents(currentDirectory + folder)
 
     this.setState({
-      folderList: folderList,
-      currentDirectory: newDirectory,
-      header: header
+      folderList,
+      currentDirectory,
+      previousDirectory,
+      header
     })
   }
 
@@ -128,15 +158,19 @@ export default class FileSystemView extends React.Component {
       intermediates: true
     }
     try {
-      FileSystem.deleteAsync(FileSystem.documentDirectory)
-      FileSystem.deleteAsync(FileSystem.cacheDirectory)
-      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world/inner', options)
-      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world/another_one', options)
-      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/grass', options)
-      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/butter/milk', options)
-      FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_me_outside/how_bow_dah', options)
-      FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money', options)
-      FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'play_dot_cache/go_to_the_site', options)
+      // FileSystem.deleteAsync(FileSystem.documentDirectory)
+      // FileSystem.deleteAsync(FileSystem.cacheDirectory)
+      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world/inner', options)
+      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world/another_one', options)
+      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/grass', options)
+      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/butter/milk', options)
+      // FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_me_outside/how_bow_dah', options)
+      // FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money', options)
+      // FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'play_dot_cache/go_to_the_site', options)
+      // FileSystem.writeAsStringAsync('hi_folder/grass/file.json', '{ this_worked: \'yes\' }')
+      // FileSystem.getInfoAsync(FileSystem.cacheDirectory + 'ExponentAsset-74c652671225d6ded874a648502e5f0a.ttf').then((info) => console.log(info))
+      // FileSystem.getInfoAsync(FileSystem.cacheDirectory + 'ExponentAsset-74c652671225d6ded874a648502e5f0a.ttf/').then((info) => console.log(info))
+      // FileSystem.getInfoAsync(FileSystem.cacheDirectory + 'cache_money/').then((info) => console.log(info))
     } catch (error) {
       console.log(error)
     }
