@@ -21,47 +21,7 @@ export default class FileSystemView extends React.Component {
 
   componentWillMount () {
     this._addTestFiles()
-
-    // show the folders that expo has read/write access to
-    if (this.state.currentDirectory === 'Home') {
-      folderList = []
-      folderList.push(
-        <TouchableOpacity
-          onPress={() => this._changeDirectory(FileSystem.documentDirectory, 'documentDirectory')}
-          key={'documentDirectory'}
-          style={styles.fileRow}
-        >
-          <Ionicons
-            name="ios-folder"
-            size={32}
-            style={styles.icons}
-          />
-          <Text>
-            documentDirectory/
-          </Text>
-        </TouchableOpacity>
-      )
-      folderList.push(
-        <TouchableOpacity
-          onPress={() => this._changeDirectory(FileSystem.cacheDirectory, 'cacheDirectory')}
-          key={'cacheDirectory'}
-          style={styles.fileRow}
-        >
-          <Ionicons
-            name="ios-folder"
-            size={32}
-            style={styles.icons}
-          />
-          <Text>
-            cacheDirectory/
-          </Text>
-        </TouchableOpacity>
-      )
-    }
-
-    this.setState({
-      folderList: folderList
-    })
+    this._changeDirectory('Home')
   }
 
   // check the type of the item (folder, pdf, .txt, etc)
