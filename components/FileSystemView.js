@@ -45,6 +45,7 @@ export default class FileSystemView extends React.Component {
   }
 
   async _getFolderContents (currentDirectory) {
+    // return virtual home directory that has both document and cache storage
     if (currentDirectory === 'Home') {
       return ([
         <TouchableOpacity
@@ -77,7 +78,20 @@ export default class FileSystemView extends React.Component {
         </TouchableOpacity>
       ])
     }
+
     let contents = await FileSystem.readDirectoryAsync(currentDirectory)
+
+    // return indicator is folder is empty
+    if (contents.length === 0) {
+      return (
+        <View style={styles.textContainer}>
+          <Text
+            style={styles.text} >
+            This directory is empty!
+          </Text>
+        </View>
+      )
+    }
 
     // get item metadata to decide icon
     let contentsPromises = contents.map(async (item) => {
@@ -98,8 +112,7 @@ export default class FileSystemView extends React.Component {
             name={fileInfo[i].icon}
             size={32}
             style={styles.icons} />
-          <Text
-            style={styles.text} >
+          <Text>
             {item}
           </Text>
         </TouchableOpacity>
@@ -265,6 +278,15 @@ const styles = StyleSheet.create({
     // borderColor: '#000',
     color: '#2188FF',
     margin: 15,
+  },
+  textContainer: {
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  text: {
+    padding: 15,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   fileRow: {
     borderBottomWidth: 1,
