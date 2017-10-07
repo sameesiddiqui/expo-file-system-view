@@ -7,9 +7,9 @@ export default class FileSystemView extends React.Component {
 
   state = {
     folderList: [],
-    currentDirectory: '/',
+    currentDirectory: 'Home',
     previousDirectory: [],
-    header: 'Home'
+    header: ['Home']
   }
 
   constructor () {
@@ -23,7 +23,7 @@ export default class FileSystemView extends React.Component {
     this._addTestFiles()
 
     // show the folders that expo has read/write access to
-    if (this.state.currentDirectory === '/') {
+    if (this.state.currentDirectory === 'Home') {
       folderList = []
       folderList.push(
         <TouchableOpacity
@@ -64,6 +64,7 @@ export default class FileSystemView extends React.Component {
     })
   }
 
+  // check the type of the item (folder, pdf, .txt, etc)
   async _resolveItem (currentDirectory, item) {
     let metadata = await FileSystem.getInfoAsync(currentDirectory + item)
     if (metadata.isDirectory) {
@@ -79,14 +80,46 @@ export default class FileSystemView extends React.Component {
     }
   }
 
-  async _getFileContents (currentDirectory, file) {
+  async _getFileContents (path, item) {
     console.log('This is a file!')
   }
 
   async _getFolderContents (currentDirectory) {
+    if (currentDirectory === 'Home') {
+      return ([
+        <TouchableOpacity
+          onPress={() => this._changeDirectory(FileSystem.documentDirectory, 'documentDirectory')}
+          key={'documentDirectory'}
+          style={styles.fileRow}
+        >
+          <Ionicons
+            name="ios-folder"
+            size={32}
+            style={styles.icons}
+          />
+          <Text>
+            documentDirectory/
+          </Text>
+        </TouchableOpacity>,
+        <TouchableOpacity
+          onPress={() => this._changeDirectory(FileSystem.cacheDirectory, 'cacheDirectory')}
+          key={'cacheDirectory'}
+          style={styles.fileRow}
+        >
+          <Ionicons
+            name="ios-folder"
+            size={32}
+            style={styles.icons}
+          />
+          <Text>
+            cacheDirectory/
+          </Text>
+        </TouchableOpacity>
+      ])
+    }
     let contents = await FileSystem.readDirectoryAsync(currentDirectory)
 
-    // check if item is a folder or file
+    // get item metadata to decide icon
     let contentsPromises = contents.map(async (item) => {
       let info = await this._resolveItem(currentDirectory, item)
       return info
@@ -94,9 +127,10 @@ export default class FileSystemView extends React.Component {
     let fileInfo = await Promise.all(contentsPromises)
 
     let folderList = contents.map((item, i) => {
+      let path = currentDirectory + item + '/'
       return (
         <TouchableOpacity
-          onPress={() => this._changeDirectory(currentDirectory, item, fileInfo[i].isDirectory)}
+          onPress={() => this._handlePress(path, item, fileInfo[i].isDirectory)}
           key={item}
           style={styles.fileRow}
         >
@@ -115,36 +149,90 @@ export default class FileSystemView extends React.Component {
     return folderList
   }
 
-  async _changeDirectory (currentDirectory, folder, isDirectory = true) {
-    folder += '/'
-    let header = this.state.header
-    // add the folder to our navigation stack
-    let previousDirectory = this.state.previousDirectory
-    previousDirectory.push(folder)
-    // check if we've picked a directory yet
-    if (folder === 'documentDirectory/' || folder === 'cacheDirectory/') {
-      header = folder
-      folder = ''
+  _handlePress (path, item, isDirectory) {
+    if (isDirectory) {
+      this._changeDirectory(path, item)
     } else {
-      header += folder
+      this._getFileContents(path, item)
     }
-    let folderList = await this._getFolderContents(currentDirectory + folder)
+  }
+
+  _updateHeader (newDirectory, item) {
+    item += '/'
+    let header = this.state.header
+    let previousDirectory = this.state.previousDirectory
+
+    // going to previousDirectory
+    if (item === '/') {
+      if (header.length > 1) {
+        header.pop()
+      } else {
+        // Went all the way up to home
+        header[0] = 'Home'
+      }
+    } // check if we've picked a directory yet
+    else if (item === 'documentDirectory/' || item === 'cacheDirectory/') {
+      header[0] = item
+      previousDirectory.push('Home')
+    } else {
+      header.push(item)
+      previousDirectory.push(this.state.currentDirectory)
+    }
+
+    return {
+      header,
+      previousDirectory
+    }
+  }
+
+  async _changeDirectory (newDirectory, item = '') {
+
+    let { header, previousDirectory } = this._updateHeader(newDirectory, item)
+    let folderList = await this._getFolderContents(newDirectory)
 
     this.setState({
       folderList,
-      currentDirectory,
+      currentDirectory: newDirectory,
       previousDirectory,
       header
     })
   }
 
+  _goToPrevDirectory () {
+    let previousDirectory = this.state.previousDirectory
+    previousDirectory = previousDirectory.pop()
+
+    if (previousDirectory === 'Home' || previousDirectory === null) {
+      // don't go to a directory, go to home view
+      this._changeDirectory('Home')
+    } else {
+      this._changeDirectory(previousDirectory)
+    }
+  }
+
   render () {
-    // console.log('state: ', this.state)
+    // don't render back button before picking a directory
+    let backButton = null
+    if (this.state.currentDirectory !== 'Home') {
+      backButton = (
+        <TouchableOpacity
+          onPress={() => this._goToPrevDirectory()}
+          style={styles.buttonContainer}
+          >
+            <Ionicons
+              name={'ios-arrow-round-back'}
+              size={32}
+              style={styles.backButton} />
+          </TouchableOpacity>
+      )
+    }
+
     return (
       <View style={styles.container}>
         <View style={styles.header}>
+          {backButton}
           <Text style={styles.headerText}>
-            {this.state.header}
+            {this.state.header.join('')}
           </Text>
         </View>
         {this.state.folderList}
@@ -190,17 +278,33 @@ const styles = StyleSheet.create({
     // borderColor: '#000',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 15,
+    // justifyContent: 'center',
+    height: 56,
     backgroundColor: '#2188FF',
   },
-  headerText: {
+  backButton: {
+    // borderWidth: 1,
+    // borderColor: '#000',
     color: '#F8F8F9',
+    paddingLeft: 15,
+    paddingRight: 12,
+    justifyContent: 'flex-start'
+  },
+  headerText: {
+    // borderWidth: 1,
+    // borderColor: '#000',
+    color: '#F8F8F9',
+    alignItems: 'center',
+    flex: 1,
+    marginLeft: 14,
+    // height: 32,
     fontSize: 16
   },
   icons: {
+    // borderWidth: 1,
+    // borderColor: '#000',
     color: '#2188FF',
-    margin: 15
+    margin: 15,
   },
   fileRow: {
     borderBottomWidth: 1,
