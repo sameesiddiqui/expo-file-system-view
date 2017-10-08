@@ -27,14 +27,40 @@ export default class FileSystemView extends React.Component {
   // check the type of the item (folder, pdf, .txt, etc)
   async _resolveItem (currentDirectory, item) {
     let metadata = await FileSystem.getInfoAsync(currentDirectory + item)
+    let fileType = item.split('.').pop()
+    console.log(item + ': ' + fileType)
+    let code = new Set(['js', 'json', 'css', 'html'])
+    let image = new Set(['jpg', 'png', 'ico', 'svg', 'pdf'])
+    let audio = new Set(['mp3'])
+    let video = new Set(['mp4'])
     if (metadata.isDirectory) {
       return {
         icon: 'ios-folder',
         isDirectory: true
       }
-    } else {
+    } else if (code.has(fileType)) {
       return {
         icon: 'ios-code',
+        isDirectory: false
+      }
+    } else if (image.has(fileType)) {
+      return {
+        icon: 'ios-image',
+        isDirectory: false
+      }
+    } else if (audio.has(fileType)) {
+      return {
+        icon: 'ios-volume-up',
+        isDirectory: false
+      }
+    } else if (video.has(fileType)) {
+      return {
+        icon: 'ios-videocam',
+        isDirectory: false
+      }
+    } else {
+      return {
+        icon: 'ios-document',
         isDirectory: false
       }
     }
@@ -42,6 +68,10 @@ export default class FileSystemView extends React.Component {
 
   async _getFileContents (path, item) {
     console.log('This is a file!')
+    let fileContents = await FileSystem.readAsStringAsync(path)
+    this.setState({
+      folderList: fileContents
+    })
   }
 
   async _getFolderContents (currentDirectory) {
@@ -259,8 +289,8 @@ const styles = StyleSheet.create({
     // borderWidth: 1,
     // borderColor: '#000',
     color: '#F8F8F9',
-    paddingLeft: 15,
-    paddingRight: 12,
+    width: 32,
+    marginLeft: 15,
     justifyContent: 'flex-start'
   },
   headerText: {
@@ -269,7 +299,7 @@ const styles = StyleSheet.create({
     color: '#F8F8F9',
     alignItems: 'center',
     flex: 1,
-    marginLeft: 14,
+    marginLeft: 15,
     // height: 32,
     fontSize: 16
   },
@@ -278,6 +308,7 @@ const styles = StyleSheet.create({
     // borderColor: '#000',
     color: '#2188FF',
     margin: 15,
+    width: 32
   },
   textContainer: {
     justifyContent: 'center',
