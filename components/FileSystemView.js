@@ -67,8 +67,13 @@ export default class FileSystemView extends React.Component {
   }
 
   async _getFileContents (path, item) {
-    console.log('This is a file!')
-    let fileContents = await FileSystem.readAsStringAsync(path)
+    let fileContents = <Text> This file couldn't be read. See console for details. </Text>
+    try {
+      fileContents = await FileSystem.readAsStringAsync(path)
+    } catch (e) {
+      console.log('This file couldn\'t be read: ', e)
+    }
+
     this.setState({
       folderList: fileContents
     })
@@ -249,15 +254,17 @@ export default class FileSystemView extends React.Component {
       intermediates: true
     }
     try {
-      // FileSystem.deleteAsync(FileSystem.documentDirectory)
-      // FileSystem.deleteAsync(FileSystem.cacheDirectory)
-      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world/inner', options)
-      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world/another_one', options)
-      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/grass', options)
-      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/butter/milk', options)
-      // FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_me_outside/how_bow_dah', options)
-      // FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money', options)
-      // FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'play_dot_cache/go_to_the_site', options)
+      console.log(FileSystem.documentDirectory)
+      FileSystem.deleteAsync(FileSystem.documentDirectory)
+      FileSystem.deleteAsync(FileSystem.cacheDirectory)
+      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory, options)
+      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world/inner', options)
+      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world/another_one', options)
+      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/grass', options)
+      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/butter/milk', options)
+      FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_me_outside/how_bow_dah', options)
+      FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money', options)
+      FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'play_dot_cache/go_to_the_site', options)
       // FileSystem.writeAsStringAsync('hi_folder/grass/file.json', '{ this_worked: \'yes\' }')
       // FileSystem.getInfoAsync(FileSystem.cacheDirectory + 'ExponentAsset-74c652671225d6ded874a648502e5f0a.ttf').then((info) => console.log(info))
       // FileSystem.getInfoAsync(FileSystem.cacheDirectory + 'ExponentAsset-74c652671225d6ded874a648502e5f0a.ttf/').then((info) => console.log(info))
