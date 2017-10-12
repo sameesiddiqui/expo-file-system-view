@@ -73,6 +73,7 @@ export default class FileSystemView extends React.Component {
   }
 
   async _getFileContents (path, item, fileType) {
+    let { header, previousDirectory } = await this._updateHeader(path, item, false)
     let fileContents = <Text> This file couldn't be read. See console for details. </Text>
     console.log(path, item, fileType)
     try {
@@ -90,10 +91,13 @@ export default class FileSystemView extends React.Component {
           style={{ width: 300, height: 300 }}
         />
       } else if (fileType === 'audio') {
-        fileContents = await Expo.Audio.Sound.create(
+        let playbackObject = await Expo.Audio.Sound.create(
           { uri: 'http://foo/bar.mp3' },
           { shouldPlay: true }
         )
+        fileContents = <Video
+          ref={playbackObject}
+        />
       } else {
         let stringFileContents = await FileSystem.readAsStringAsync(path)
         fileContents = <Text> {stringFileContents} </Text>
@@ -104,6 +108,8 @@ export default class FileSystemView extends React.Component {
     }
 
     this.setState({
+      header,
+      previousDirectory,
       folderList: fileContents
     })
   }
@@ -194,8 +200,10 @@ export default class FileSystemView extends React.Component {
     }
   }
 
-  _updateHeader (newDirectory, item) {
-    item += '/'
+  _updateHeader (newDirectory, item, isDirectory = true) {
+    if (isDirectory) {
+      item += '/'
+    }
     let header = this.state.header
     let previousDirectory = this.state.previousDirectory
 
@@ -283,22 +291,20 @@ export default class FileSystemView extends React.Component {
     let options = {
       intermediates: true
     }
-    let testString1 = {
+    let example = {
+      this_worked: 'yes'
+    }
+    let passwords = {
       this_worked: 'yes'
     }
     try {
-      // console.log(FileSystem.documentDirectory)
       FileSystem.deleteAsync(FileSystem.documentDirectory)
       FileSystem.deleteAsync(FileSystem.cacheDirectory)
-      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory, options)
-      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world/inner', options)
-      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hello_world/another_one', options)
-      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/grass', options)
-      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'hi_folder/butter/milk', options)
-      FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_me_outside/how_bow_dah', options)
+
+      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'cool_folder/secret', options)
+      FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'example.json', JSON.stringify(example, null, '\t'))
       FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money', options)
-      FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'play_dot_cache/go_to_the_site', options)
-      FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'hello_world/inner/file.json', JSON.stringify(testString1, null, '\t'))
+      FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'cool_folder/secret/passwords.json', JSON.stringify(passwords, null, '\t'))
       FileSystem.downloadAsync(
         'http://pngimg.com/uploads/cat/cat_PNG1631.png',
         FileSystem.documentDirectory + 'cat.png'
@@ -307,9 +313,16 @@ export default class FileSystemView extends React.Component {
         'http://techslides.com/demos/sample-videos/small.mp4',
         FileSystem.documentDirectory + 'small.mp4'
       )
-      // FileSystem.getInfoAsync(FileSystem.cacheDirectory + 'ExponentAsset-74c652671225d6ded874a648502e5f0a.ttf').then((info) => console.log(info))
-      // FileSystem.getInfoAsync(FileSystem.cacheDirectory + 'ExponentAsset-74c652671225d6ded874a648502e5f0a.ttf/').then((info) => console.log(info))
-      FileSystem.getInfoAsync(FileSystem.documentDirectory).then((info) => console.log(info))
+      FileSystem.downloadAsync(
+        'http://pngimg.com/uploads/falling_money/falling_money_PNG15438.png',
+        FileSystem.cacheDirectory + 'cache_money/wealth_creation.png'
+      )
+      FileSystem.downloadAsync(
+        'http://www.noiseaddicts.com/free-samples-mp3/?id=4927',
+        FileSystem.documentDirectory + 'bear_noise.mp3'
+      )
+
+      // FileSystem.getInfoAsync(FileSystem.documentDirectory).then((info) => console.log(info))
     } catch (error) {
       console.log(error)
     }
