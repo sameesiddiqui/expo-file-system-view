@@ -1,6 +1,6 @@
 import React from 'react'
-import { FileSystem } from 'expo'
-import { TouchableOpacity, View, Text, StyleSheet } from 'react-native'
+import { FileSystem, Video, Audio } from 'expo'
+import { TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 
 export default class FileSystemView extends React.Component {
@@ -28,7 +28,8 @@ export default class FileSystemView extends React.Component {
   async _resolveItem (currentDirectory, item) {
     let metadata = await FileSystem.getInfoAsync(currentDirectory + item)
     let fileType = item.split('.').pop()
-    console.log(item + ': ' + fileType)
+
+    // file types - each has a unique image and way it will be displayed in _getFileContents
     let code = new Set(['js', 'json', 'css', 'html'])
     let image = new Set(['jpg', 'png', 'ico', 'svg', 'pdf'])
     let audio = new Set(['mp3'])
@@ -41,35 +42,63 @@ export default class FileSystemView extends React.Component {
     } else if (code.has(fileType)) {
       return {
         icon: 'ios-code',
-        isDirectory: false
+        isDirectory: false,
+        fileType: 'code'
       }
     } else if (image.has(fileType)) {
       return {
         icon: 'ios-image',
-        isDirectory: false
+        isDirectory: false,
+        fileType: 'image'
       }
     } else if (audio.has(fileType)) {
       return {
         icon: 'ios-volume-up',
-        isDirectory: false
+        isDirectory: false,
+        fileType: 'audio'
       }
     } else if (video.has(fileType)) {
       return {
         icon: 'ios-videocam',
-        isDirectory: false
+        isDirectory: false,
+        fileType: 'video'
       }
     } else {
       return {
-        icon: 'ios-document',
-        isDirectory: false
+        icon: 'md-list-box',
+        isDirectory: false,
+        fileType: 'text'
       }
     }
   }
 
-  async _getFileContents (path, item) {
+  async _getFileContents (path, item, fileType) {
     let fileContents = <Text> This file couldn't be read. See console for details. </Text>
+    console.log(path, item, fileType)
     try {
-      fileContents = await FileSystem.readAsStringAsync(path)
+      if (fileType === 'image') {
+        fileContents = <Image source={{uri: path }} style={{width: 300, height: 300}}/>
+      } else if (fileType === 'video') {
+        fileContents = <Video
+          source={{ uri: path }}
+          rate={1.0}
+          volume={1.0}
+          muted={false}
+          resizeMode="cover"
+          shouldPlay
+          isLooping
+          style={{ width: 300, height: 300 }}
+        />
+      } else if (fileType === 'audio') {
+        fileContents = await Expo.Audio.Sound.create(
+          { uri: 'http://foo/bar.mp3' },
+          { shouldPlay: true }
+        )
+      } else {
+        let stringFileContents = await FileSystem.readAsStringAsync(path)
+        fileContents = <Text> {stringFileContents} </Text>
+      }
+
     } catch (e) {
       console.log('This file couldn\'t be read: ', e)
     }
@@ -136,10 +165,10 @@ export default class FileSystemView extends React.Component {
     let fileInfo = await Promise.all(contentsPromises)
 
     let folderList = contents.map((item, i) => {
-      let path = currentDirectory + item + '/'
+      let path = currentDirectory + item
       return (
         <TouchableOpacity
-          onPress={() => this._handlePress(path, item, fileInfo[i].isDirectory)}
+          onPress={() => this._handlePress(path, item, fileInfo[i].isDirectory, fileInfo[i].fileType)}
           key={item}
           style={styles.fileRow}
         >
@@ -157,11 +186,11 @@ export default class FileSystemView extends React.Component {
     return folderList
   }
 
-  _handlePress (path, item, isDirectory) {
+  _handlePress (path, item, isDirectory, fileType) {
     if (isDirectory) {
-      this._changeDirectory(path, item)
+      this._changeDirectory(path + '/', item)
     } else {
-      this._getFileContents(path, item)
+      this._getFileContents(path, item, fileType)
     }
   }
 
@@ -193,6 +222,7 @@ export default class FileSystemView extends React.Component {
     }
   }
 
+  // display contents of the selected directory path
   async _changeDirectory (newDirectory, item = '') {
 
     let { header, previousDirectory } = this._updateHeader(newDirectory, item)
@@ -253,8 +283,11 @@ export default class FileSystemView extends React.Component {
     let options = {
       intermediates: true
     }
+    let testString1 = {
+      this_worked: 'yes'
+    }
     try {
-      console.log(FileSystem.documentDirectory)
+      // console.log(FileSystem.documentDirectory)
       FileSystem.deleteAsync(FileSystem.documentDirectory)
       FileSystem.deleteAsync(FileSystem.cacheDirectory)
       // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory, options)
@@ -265,10 +298,18 @@ export default class FileSystemView extends React.Component {
       FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_me_outside/how_bow_dah', options)
       FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money', options)
       FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'play_dot_cache/go_to_the_site', options)
-      // FileSystem.writeAsStringAsync('hi_folder/grass/file.json', '{ this_worked: \'yes\' }')
+      FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'hello_world/inner/file.json', JSON.stringify(testString1, null, '\t'))
+      FileSystem.downloadAsync(
+        'http://pngimg.com/uploads/cat/cat_PNG1631.png',
+        FileSystem.documentDirectory + 'cat.png'
+      )
+      FileSystem.downloadAsync(
+        'http://techslides.com/demos/sample-videos/small.mp4',
+        FileSystem.documentDirectory + 'small.mp4'
+      )
       // FileSystem.getInfoAsync(FileSystem.cacheDirectory + 'ExponentAsset-74c652671225d6ded874a648502e5f0a.ttf').then((info) => console.log(info))
       // FileSystem.getInfoAsync(FileSystem.cacheDirectory + 'ExponentAsset-74c652671225d6ded874a648502e5f0a.ttf/').then((info) => console.log(info))
-      // FileSystem.getInfoAsync(FileSystem.cacheDirectory + 'cache_money/').then((info) => console.log(info))
+      FileSystem.getInfoAsync(FileSystem.documentDirectory).then((info) => console.log(info))
     } catch (error) {
       console.log(error)
     }
