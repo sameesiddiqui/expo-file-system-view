@@ -1,7 +1,9 @@
 import React from 'react'
 import { FileSystem, Video, Audio } from 'expo'
+import VideoPlayer from '@expo/videoplayer'
 import { TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+let bass = require('../assets/audio/Bass.mp3')
 
 export default class FileSystemView extends React.Component {
 
@@ -10,13 +12,6 @@ export default class FileSystemView extends React.Component {
     currentDirectory: 'Home',
     previousDirectory: [],
     header: ['Home']
-  }
-
-  constructor () {
-    super()
-    this._changeDirectory = this._changeDirectory.bind(this)
-    this._getFolderContents = this._getFolderContents.bind(this)
-    this._resolveItem = this._resolveItem.bind(this)
   }
 
   componentWillMount () {
@@ -74,33 +69,36 @@ export default class FileSystemView extends React.Component {
 
   async _getFileContents (path, item, fileType) {
     let { header, previousDirectory } = await this._updateHeader(path, item, false)
-    let fileContents = <Text> This file couldn't be read. See console for details. </Text>
-    console.log(path, item, fileType)
+    let fileContents = <Text style={styles.text}> This file couldn't be read. See console for details. </Text>
+
     try {
       if (fileType === 'image') {
-        fileContents = <Image source={{uri: path }} style={{width: 300, height: 300}}/>
+        fileContents = <Image source={{uri: path }} style={{alignSelf:'center', width: 300, height: 300}}/>
       } else if (fileType === 'video') {
-        fileContents = <Video
-          source={{ uri: path }}
-          rate={1.0}
-          volume={1.0}
-          muted={false}
-          resizeMode="cover"
-          shouldPlay
-          isLooping
-          style={{ width: 300, height: 300 }}
+        // show video file in video player
+        fileContents = <VideoPlayer
+          videoProps={{
+            source: { uri: path },
+            rate: 1.0,
+            volume: 1.0,
+            muted: false,
+            resizeMode: Video.RESIZE_MODE_CONTAIN,
+            shouldPlay: true,
+            isLooping: true,
+            style: { width: 300, height: 300 }
+          }}
+          isPortrait={true}
+          playFromPositionMillis={0}
         />
       } else if (fileType === 'audio') {
-        let playbackObject = await Expo.Audio.Sound.create(
-          { uri: 'http://foo/bar.mp3' },
+        fileContents = <Text> Audio is playing! </Text>
+        const playbackObject = await Expo.Audio.Sound.create(
+          { uri: path },
           { shouldPlay: true }
         )
-        fileContents = <Video
-          ref={playbackObject}
-        />
       } else {
         let stringFileContents = await FileSystem.readAsStringAsync(path)
-        fileContents = <Text> {stringFileContents} </Text>
+        fileContents = <Text style={styles.text}> {stringFileContents} </Text>
       }
 
     } catch (e) {
@@ -151,7 +149,7 @@ export default class FileSystemView extends React.Component {
 
     let contents = await FileSystem.readDirectoryAsync(currentDirectory)
 
-    // return indicator is folder is empty
+    // return indicator if folder is empty
     if (contents.length === 0) {
       return (
         <View style={styles.textContainer}>
@@ -182,13 +180,13 @@ export default class FileSystemView extends React.Component {
             name={fileInfo[i].icon}
             size={32}
             style={styles.icons} />
-          <Text>
+          <Text style={{color: '#262626'}}>
             {item}
           </Text>
         </TouchableOpacity>
       )
     })
-    // console.log(folderList)
+
     return folderList
   }
 
@@ -292,10 +290,11 @@ export default class FileSystemView extends React.Component {
       intermediates: true
     }
     let example = {
-      this_worked: 'yes'
+      this_worked: 'yes',
+      expoIsCool: true
     }
     let passwords = {
-      this_worked: 'yes'
+      trolled: true
     }
     try {
       FileSystem.deleteAsync(FileSystem.documentDirectory)
@@ -305,6 +304,7 @@ export default class FileSystemView extends React.Component {
       FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'example.json', JSON.stringify(example, null, '\t'))
       FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money', options)
       FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'cool_folder/secret/passwords.json', JSON.stringify(passwords, null, '\t'))
+
       FileSystem.downloadAsync(
         'http://pngimg.com/uploads/cat/cat_PNG1631.png',
         FileSystem.documentDirectory + 'cat.png'
@@ -316,10 +316,6 @@ export default class FileSystemView extends React.Component {
       FileSystem.downloadAsync(
         'http://pngimg.com/uploads/falling_money/falling_money_PNG15438.png',
         FileSystem.cacheDirectory + 'cache_money/wealth_creation.png'
-      )
-      FileSystem.downloadAsync(
-        'http://www.noiseaddicts.com/free-samples-mp3/?id=4927',
-        FileSystem.documentDirectory + 'bear_noise.mp3'
       )
 
       // FileSystem.getInfoAsync(FileSystem.documentDirectory).then((info) => console.log(info))
@@ -334,6 +330,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     // borderWidth: 1,
     // borderColor: '#000',
+    backgroundColor: '#f7f7f7',
     flex: .9,
     alignSelf: 'stretch'
   },
@@ -376,6 +373,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   text: {
+    color: '#262626',
     padding: 15,
     justifyContent: 'center',
     alignItems: 'center'
