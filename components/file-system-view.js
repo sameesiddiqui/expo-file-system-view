@@ -342,7 +342,7 @@ export default class FileSystemView extends React.Component {
     let { cancelled } = await ImagePicker.launchImageLibraryAsync()
     if (!cancelled) {
       let modalContent = <Text style={styles.text}>Image added to cache!</Text>
-      this.refreshFolder()
+      this.refreshFolder(true)
       this.setState({
         modalContent
       })
@@ -368,11 +368,11 @@ export default class FileSystemView extends React.Component {
     })
   }
 
-  async refreshFolder () {
+  async refreshFolder (showModal = false) {
     let folderList = await this.getFolderContents(this.state.currentDirectory)
     this.setState({
       folderList,
-      showModal: false
+      showModal
     })
   }
 
@@ -428,10 +428,10 @@ export default class FileSystemView extends React.Component {
         <ScrollView>
           {this.state.folderList}
           {modal}
-          <View style={styles.footer}>
-            {addButton}
-          </View>
         </ScrollView>
+        <View style={styles.footer}>
+          {addButton}
+        </View>
       </View>
     )
   }
