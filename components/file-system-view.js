@@ -1,5 +1,5 @@
 import React from 'react'
-import { FileSystem, Video, Audio } from 'expo'
+import { FileSystem, Video, Audio, ImagePicker } from 'expo'
 import VideoPlayer from '@expo/videoplayer'
 import {
   TouchableOpacity,
@@ -7,12 +7,13 @@ import {
   Text,
   StyleSheet,
   Image,
-  StatusBar
+  StatusBar,
+  TextInput,
+  ScrollView
 } from 'react-native'
 import Modal from 'react-native-modal'
 import { Ionicons } from '@expo/vector-icons'
 import TouchableBounce from 'react-native/Libraries/Components/Touchable/TouchableBounce';
-let bass = require('../assets/audio/Bass.mp3')
 
 export default class FileSystemView extends React.Component {
 
@@ -26,21 +27,20 @@ export default class FileSystemView extends React.Component {
   }
 
   componentWillMount () {
-    this._addTestFiles()
-    this._changeDirectory('Home')
+    this.addTestFiles()
   }
 
   // check the type of the item (folder, pdf, .txt, etc)
-  async _resolveItem (currentDirectory, item) {
+  async resolveItem (currentDirectory, item = '') {
     let metadata = await FileSystem.getInfoAsync(currentDirectory + item)
     let fileType = item.split('.').pop()
 
-    // file types - each has a unique image and way it will be displayed in _getFileContents
+    // file types - each has a unique image and way it will be displayed in getFileContents
     let code = new Set(['js', 'json', 'css', 'html'])
     let image = new Set(['jpg', 'png', 'ico', 'svg', 'pdf'])
     let audio = new Set(['mp3'])
     let video = new Set(['mp4'])
-    if (metadata.isDirectory) {
+    if (metadata.isDirectory && item !== '') {
       return {
         icon: 'ios-folder',
         isDirectory: true
@@ -78,8 +78,8 @@ export default class FileSystemView extends React.Component {
     }
   }
 
-  async _getFileContents (path, item, fileType) {
-    let { header, previousDirectory } = await this._updateHeader(path, item, false)
+  async getFileContents (path, item, fileType) {
+    let { header, previousDirectory } = await this.updateHeader(path, item, false)
     let fileContents = <Text style={styles.text}> This file couldn't be read. See console for details. </Text>
 
     try {
@@ -124,22 +124,22 @@ export default class FileSystemView extends React.Component {
     })
   }
 
-  async _getFolderContents (currentDirectory) {
+  async getFolderContents (currentDirectory) {
     // return virtual home directory that has both document and cache storage
     if (currentDirectory === 'Home') {
       return ([
-        this._createClickableRow(
+        this.createClickableRow(
           {
-            onPress: () => this._changeDirectory(FileSystem.documentDirectory, 'documentDirectory'),
+            onPress: () => this.changeDirectory(FileSystem.documentDirectory, 'documentDirectory'),
             touchableStyle: styles.fileRow,
             icon: 'ios-folder',
             text: 'documentDirectory/',
             textColor: '#262626'
           }, 'documentDirectory'
         ),
-        this._createClickableRow(
+        this.createClickableRow(
           {
-            onPress: () => this._changeDirectory(FileSystem.cacheDirectory, 'cacheDirectory'),
+            onPress: () => this.changeDirectory(FileSystem.cacheDirectory, 'cacheDirectory'),
             touchableStyle: styles.fileRow,
             icon: 'ios-folder',
             text: 'cacheDirectory/',
@@ -165,7 +165,7 @@ export default class FileSystemView extends React.Component {
 
     // get item metadata to decide icon
     let contentsPromises = contents.map(async (item) => {
-      let info = await this._resolveItem(currentDirectory, item)
+      let info = await this.resolveItem(currentDirectory, item)
       return info
     })
     let fileInfo = await Promise.all(contentsPromises)
@@ -174,9 +174,9 @@ export default class FileSystemView extends React.Component {
       let path = currentDirectory + item
 
       // create a row for every item in directory
-      return this._createClickableRow(
+      return this.createClickableRow(
         {
-          onPress: () => this._handlePress(path, item, fileInfo[i].isDirectory, fileInfo[i].fileType),
+          onPress: () => this.handlePress(path, item, fileInfo[i].isDirectory, fileInfo[i].fileType),
           touchableStyle: styles.fileRow,
           icon: fileInfo[i].icon,
           text: item,
@@ -188,15 +188,15 @@ export default class FileSystemView extends React.Component {
     return folderList
   }
 
-  _handlePress (path, item, isDirectory, fileType) {
+  handlePress (path, item, isDirectory, fileType) {
     if (isDirectory) {
-      this._changeDirectory(path + '/', item)
+      this.changeDirectory(path + '/', item)
     } else {
-      this._getFileContents(path, item, fileType)
+      this.getFileContents(path, item, fileType)
     }
   }
 
-  _updateHeader (newDirectory, item, isDirectory = true) {
+  updateHeader (newDirectory, item, isDirectory = true) {
     if (isDirectory) {
       item += '/'
     }
@@ -227,10 +227,10 @@ export default class FileSystemView extends React.Component {
   }
 
   // display contents of the selected directory path
-  async _changeDirectory (newDirectory, item = '') {
+  async changeDirectory (newDirectory, item = '') {
 
-    let { header, previousDirectory } = this._updateHeader(newDirectory, item)
-    let folderList = await this._getFolderContents(newDirectory)
+    let { header, previousDirectory } = this.updateHeader(newDirectory, item)
+    let folderList = await this.getFolderContents(newDirectory)
 
     this.setState({
       folderList,
@@ -240,19 +240,19 @@ export default class FileSystemView extends React.Component {
     })
   }
 
-  _goToPrevDirectory () {
+  goToPrevDirectory () {
     let previousDirectory = this.state.previousDirectory
     previousDirectory = previousDirectory.pop()
 
     if (previousDirectory === 'Home' || previousDirectory === null) {
       // don't go to a directory, go to home view
-      this._changeDirectory('Home')
+      this.changeDirectory('Home')
     } else {
-      this._changeDirectory(previousDirectory)
+      this.changeDirectory(previousDirectory)
     }
   }
 
-  _createClickableRow (opts, key = null) {
+  createClickableRow (opts, key = null) {
     let { onPress, touchableStyle, icon, text, textColor } = opts
     if (key === null) key = text
     return (
@@ -271,39 +271,38 @@ export default class FileSystemView extends React.Component {
     )
   }
 
-  // TODO: download a file, add pic from camera roll, create folder
-  _addFileOptions () {
+  addFileOptions () {
     let modalContent = <View style={{flex: 1}}>
-      {this._createClickableRow(
+      {this.createClickableRow(
         {
-          onPress: () => console.log('Created folder!'),
+          onPress: () => this.getTextInput('filename', 'folder'),
           touchableStyle: styles.fileRow,
           icon: 'ios-add-outline',
           text: 'Create a folder',
           textColor: '#262626'
         }
       )}
-      {this._createClickableRow(
+      {this.createClickableRow(
         {
-          onPress: () => console.log('Downloading...'),
+          onPress: () => this.getTextInput('url', 'download'),
           touchableStyle: styles.fileRow,
           icon: 'ios-download',
           text: 'Download a file',
           textColor: '#262626'
         }
       )}
-      {this._createClickableRow(
+      {this.createClickableRow(
         {
-          onPress: () => console.log('Opening selector...'),
+          onPress: () => this.addPicture(),
           touchableStyle: styles.fileRow,
           icon: 'ios-images',
           text: 'Add an image',
           textColor: '#262626'
         }
       )}
-      {this._createClickableRow(
+      {this.createClickableRow(
         {
-          onPress: () => this._addTestFiles(),
+          onPress: () => this.addTestFiles(),
           touchableStyle: styles.fileRowBottom,
           icon: 'ios-folder-open',
           text: 'Add dummy files',
@@ -318,13 +317,72 @@ export default class FileSystemView extends React.Component {
     })
   }
 
+  async createFolder (folderName) {
+    try {
+      await FileSystem.makeDirectoryAsync(this.state.currentDirectory + folderName)
+      this.refreshFolder()
+    } catch (e) {
+      console.log('Couldnt create the folder: ', e)
+    }
+  }
+
+  async downloadFile (url) {
+    try {
+      let { uri } = await FileSystem.downloadAsync(
+        url,
+        this.state.currentDirectory + (url.split('/').join(''))
+      )
+      this.refreshFolder()
+    } catch (e) {
+      console.log('Couldn\'t download from the uri: ', e)
+    }
+  }
+
+  async addPicture () {
+    let { cancelled } = await ImagePicker.launchImageLibraryAsync()
+    if (!cancelled) {
+      let modalContent = <Text style={styles.text}>Image added to cache!</Text>
+      this.refreshFolder()
+      this.setState({
+        modalContent
+      })
+    }
+  }
+
+  getTextInput (placeholder, callback) {
+    let cb = () => this.createFolder(this.input._lastNativeText)
+    if (callback === 'download') {
+      cb = () => this.downloadFile(this.input._lastNativeText)
+    }
+    let modalContent = <TextInput
+      ref={(input) => this.input = input}
+      autoCapitalize={'none'}
+      autoCorrect={false}
+      placeholder={placeholder}
+      returnKeyType={'go'}
+      onSubmitEditing={cb}
+      style={styles.text}
+    />
+    this.setState({
+      modalContent
+    })
+  }
+
+  async refreshFolder () {
+    let folderList = await this.getFolderContents(this.state.currentDirectory)
+    this.setState({
+      folderList,
+      showModal: false
+    })
+  }
+
   render () {
     // don't render back button before picking a directory
     let backButton = null
     let addButton = null
     if (this.state.currentDirectory !== 'Home') {
       backButton = (
-        <TouchableOpacity onPress={() => this._goToPrevDirectory()} >
+        <TouchableOpacity onPress={() => this.goToPrevDirectory()} >
           <Ionicons
             name={'ios-arrow-round-back'}
             size={32}
@@ -333,7 +391,7 @@ export default class FileSystemView extends React.Component {
       )
       addButton = (
         <TouchableBounce
-          onPress={() => this._addFileOptions()}
+          onPress={() => this.addFileOptions()}
           style={styles.addButtonContainer}>
           <Ionicons
             name={'ios-add-outline'}
@@ -367,18 +425,19 @@ export default class FileSystemView extends React.Component {
           </Text>
         </View>
 
-        {this.state.folderList}
-        {modal}
-        <View style={styles.footer}>
-          {addButton}
-        </View>
-
+        <ScrollView>
+          {this.state.folderList}
+          {modal}
+          <View style={styles.footer}>
+            {addButton}
+          </View>
+        </ScrollView>
       </View>
     )
   }
 
   // optional add in if first time running the app. generates some files.
-  _addTestFiles () {
+  addTestFiles () {
     console.log('Adding dummy files...')
     let options = {
       intermediates: true
@@ -391,31 +450,32 @@ export default class FileSystemView extends React.Component {
       trolled: true
     }
     try {
-      // FileSystem.deleteAsync(FileSystem.documentDirectory)
-      // FileSystem.deleteAsync(FileSystem.cacheDirectory)
-      //
-      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'cool_folder/secret', options)
-      // FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'example.json', JSON.stringify(example, null, '\t'))
-      // FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money', options)
-      // FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'cool_folder/secret/passwords.json', JSON.stringify(passwords, null, '\t'))
-      //
-      // FileSystem.downloadAsync(
-      //   'http://pngimg.com/uploads/cat/cat_PNG1631.png',
-      //   FileSystem.documentDirectory + 'cat.png'
-      // )
-      // FileSystem.downloadAsync(
-      //   'http://techslides.com/demos/sample-videos/small.mp4',
-      //   FileSystem.documentDirectory + 'small.mp4'
-      // )
-      // FileSystem.downloadAsync(
-      //   'http://pngimg.com/uploads/falling_money/falling_money_PNG15438.png',
-      //   FileSystem.cacheDirectory + 'cache_money/wealth_creation.png'
-      // )
+      FileSystem.deleteAsync(FileSystem.documentDirectory)
+      FileSystem.deleteAsync(FileSystem.cacheDirectory)
+
+      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'cool_folder/secret', options)
+      FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'example.json', JSON.stringify(example, null, '\t'))
+      FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money', options)
+      FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'cool_folder/secret/passwords.json', JSON.stringify(passwords, null, '\t'))
+
+      FileSystem.downloadAsync(
+        'http://pngimg.com/uploads/cat/cat_PNG1631.png',
+        FileSystem.documentDirectory + 'cat.png'
+      )
+      FileSystem.downloadAsync(
+        'http://techslides.com/demos/sample-videos/small.mp4',
+        FileSystem.documentDirectory + 'small.mp4'
+      )
+      FileSystem.downloadAsync(
+        'http://pngimg.com/uploads/falling_money/falling_money_PNG15438.png',
+        FileSystem.cacheDirectory + 'cache_money/wealth_creation.png'
+      )
 
       // FileSystem.getInfoAsync(FileSystem.documentDirectory).then((info) => console.log(info))
     } catch (error) {
       console.log(error)
     }
+    this.changeDirectory('Home')
   }
 }
 
