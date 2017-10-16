@@ -1,8 +1,17 @@
 import React from 'react'
 import { FileSystem, Video, Audio } from 'expo'
 import VideoPlayer from '@expo/videoplayer'
-import { TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native'
+import {
+  TouchableOpacity,
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  Modal,
+  StatusBar
+} from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import TouchableBounce from 'react-native/Libraries/Components/Touchable/TouchableBounce';
 let bass = require('../assets/audio/Bass.mp3')
 
 export default class FileSystemView extends React.Component {
@@ -11,7 +20,9 @@ export default class FileSystemView extends React.Component {
     folderList: [],
     currentDirectory: 'Home',
     previousDirectory: [],
-    header: ['Home']
+    header: ['Home'],
+    showModal: false,
+    modalContent: null
   }
 
   componentWillMount () {
@@ -87,6 +98,7 @@ export default class FileSystemView extends React.Component {
             isLooping: true,
             style: { width: 300, height: 300 }
           }}
+          switchToLandscape={() => {}}
           isPortrait={true}
           playFromPositionMillis={0}
         />
@@ -254,32 +266,74 @@ export default class FileSystemView extends React.Component {
     }
   }
 
+  // TODO: download a file, add pic from camera roll, create folder
+  _addFile () {
+    let modalContent = <Text> Hello World </Text>
+    this.setState({
+      showModal: true,
+      modalContent
+    })
+  }
+
   render () {
     // don't render back button before picking a directory
     let backButton = null
+    let addButton = null
     if (this.state.currentDirectory !== 'Home') {
       backButton = (
-        <TouchableOpacity
-          onPress={() => this._goToPrevDirectory()}
-          style={styles.buttonContainer}
-          >
-            <Ionicons
-              name={'ios-arrow-round-back'}
-              size={32}
-              style={styles.backButton} />
-          </TouchableOpacity>
+        <TouchableOpacity onPress={() => this._goToPrevDirectory()} >
+          <Ionicons
+            name={'ios-arrow-round-back'}
+            size={32}
+            style={styles.backButton} />
+        </TouchableOpacity>
+      )
+      addButton = (
+        <TouchableBounce
+          onPress={() => this._addFile()}
+          style={styles.addButtonContainer}>
+          <Ionicons
+            name={'ios-add-outline'}
+            size={35}
+            style={styles.addButton} />
+        </TouchableBounce>
       )
     }
 
+    let modal = (
+      <Modal
+        animationType='slide'
+        transparent={false}
+        visible={this.state.showModal}
+        onRequestClose={() => {alert("Modal has been closed.")}}
+      >
+        <View>
+          {this.state.modalContent}
+          <TouchableOpacity
+            onPress={() => this.setState({showModal: false})}
+            >
+            <Text>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    )
+
     return (
       <View style={styles.container}>
+        <StatusBar hidden={true} />
         <View style={styles.header}>
           {backButton}
           <Text style={styles.headerText}>
             {this.state.header.join('')}
           </Text>
         </View>
+
         {this.state.folderList}
+        {modal}
+        <View style={styles.footer}>
+          {addButton}
+        </View>
+
       </View>
     )
   }
@@ -291,7 +345,7 @@ export default class FileSystemView extends React.Component {
     }
     let example = {
       this_worked: 'yes',
-      expoIsCool: true
+      expo_is_cool: true
     }
     let passwords = {
       trolled: true
@@ -331,7 +385,7 @@ const styles = StyleSheet.create({
     // borderWidth: 1,
     // borderColor: '#000',
     backgroundColor: '#f7f7f7',
-    flex: .9,
+    flex: 1,
     alignSelf: 'stretch'
   },
   header: {
@@ -349,7 +403,21 @@ const styles = StyleSheet.create({
     color: '#F8F8F9',
     width: 32,
     marginLeft: 15,
+    alignSelf: 'center',
     justifyContent: 'flex-start'
+  },
+  addButtonContainer: {
+    backgroundColor: '#2188FF',
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    margin: 15,
+    justifyContent: 'center',
+    alignSelf: 'flex-end'
+  },
+  addButton:{
+    color: '#F8F8F9',
+    alignSelf: 'center'
   },
   headerText: {
     // borderWidth: 1,
@@ -386,4 +454,12 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     justifyContent: 'flex-start'
   },
+  footer: {
+    // borderWidth: 1,
+    // borderColor: '#000',
+    justifyContent: 'flex-end',
+    position: 'absolute',
+    bottom: 0,
+    right: 0
+  }
 })
