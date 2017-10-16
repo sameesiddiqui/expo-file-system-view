@@ -119,6 +119,7 @@ export default class FileSystemView extends React.Component {
 
     this.setState({
       header,
+      currentDirectory: path,
       previousDirectory,
       folderList: fileContents
     })
@@ -377,6 +378,9 @@ export default class FileSystemView extends React.Component {
   }
 
   render () {
+    // check if we're looking at a file or folder
+    let current = this.state.currentDirectory
+    let isDirectory = (current.charAt(current.length - 1) === '/')
     // don't render back button before picking a directory
     let backButton = null
     let addButton = null
@@ -389,16 +393,19 @@ export default class FileSystemView extends React.Component {
             style={styles.backButton} />
         </TouchableOpacity>
       )
-      addButton = (
-        <TouchableBounce
-          onPress={() => this.addFileOptions()}
-          style={styles.addButtonContainer}>
-          <Ionicons
-            name={'ios-add-outline'}
-            size={35}
-            style={styles.addButton} />
-        </TouchableBounce>
-      )
+      // dont show add button when we're looking at a file
+      if (isDirectory) {
+        addButton = (
+          <TouchableBounce
+            onPress={() => this.addFileOptions()}
+            style={styles.addButtonContainer}>
+            <Ionicons
+              name={'ios-add-outline'}
+              size={35}
+              style={styles.addButton} />
+          </TouchableBounce>
+        )
+      }
     }
 
     let modal = (
