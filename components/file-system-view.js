@@ -7,9 +7,9 @@ import {
   Text,
   StyleSheet,
   Image,
-  Modal,
   StatusBar
 } from 'react-native'
+import Modal from 'react-native-modal'
 import { Ionicons } from '@expo/vector-icons'
 import TouchableBounce from 'react-native/Libraries/Components/Touchable/TouchableBounce';
 let bass = require('../assets/audio/Bass.mp3')
@@ -128,34 +128,24 @@ export default class FileSystemView extends React.Component {
     // return virtual home directory that has both document and cache storage
     if (currentDirectory === 'Home') {
       return ([
-        <TouchableOpacity
-          onPress={() => this._changeDirectory(FileSystem.documentDirectory, 'documentDirectory')}
-          key={'documentDirectory'}
-          style={styles.fileRow}
-        >
-          <Ionicons
-            name="ios-folder"
-            size={32}
-            style={styles.icons}
-          />
-          <Text>
-            documentDirectory/
-          </Text>
-        </TouchableOpacity>,
-        <TouchableOpacity
-          onPress={() => this._changeDirectory(FileSystem.cacheDirectory, 'cacheDirectory')}
-          key={'cacheDirectory'}
-          style={styles.fileRow}
-        >
-          <Ionicons
-            name="ios-folder"
-            size={32}
-            style={styles.icons}
-          />
-          <Text>
-            cacheDirectory/
-          </Text>
-        </TouchableOpacity>
+        this._createClickableRow(
+          {
+            onPress: () => this._changeDirectory(FileSystem.documentDirectory, 'documentDirectory'),
+            touchableStyle: styles.fileRow,
+            icon: 'ios-folder',
+            text: 'documentDirectory/',
+            textColor: '#262626'
+          }, 'documentDirectory'
+        ),
+        this._createClickableRow(
+          {
+            onPress: () => this._changeDirectory(FileSystem.cacheDirectory, 'cacheDirectory'),
+            touchableStyle: styles.fileRow,
+            icon: 'ios-folder',
+            text: 'cacheDirectory/',
+            textColor: '#262626'
+          }, 'cacheDirectory'
+        )
       ])
     }
 
@@ -182,20 +172,16 @@ export default class FileSystemView extends React.Component {
 
     let folderList = contents.map((item, i) => {
       let path = currentDirectory + item
-      return (
-        <TouchableOpacity
-          onPress={() => this._handlePress(path, item, fileInfo[i].isDirectory, fileInfo[i].fileType)}
-          key={item}
-          style={styles.fileRow}
-        >
-          <Ionicons
-            name={fileInfo[i].icon}
-            size={32}
-            style={styles.icons} />
-          <Text style={{color: '#262626'}}>
-            {item}
-          </Text>
-        </TouchableOpacity>
+
+      // create a row for every item in directory
+      return this._createClickableRow(
+        {
+          onPress: () => this._handlePress(path, item, fileInfo[i].isDirectory, fileInfo[i].fileType),
+          touchableStyle: styles.fileRow,
+          icon: fileInfo[i].icon,
+          text: item,
+          textColor: '#262626'
+        }, item
       )
     })
 
@@ -266,9 +252,66 @@ export default class FileSystemView extends React.Component {
     }
   }
 
+  _createClickableRow (opts, key = null) {
+    let { onPress, touchableStyle, icon, text, textColor } = opts
+    if (key === null) key = text
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        style={touchableStyle}
+        key={key}>
+        <Ionicons
+          name={icon}
+          size={32}
+          style={styles.icons} />
+        <Text style={{color: textColor}}>
+          {text}
+        </Text>
+      </TouchableOpacity>
+    )
+  }
+
   // TODO: download a file, add pic from camera roll, create folder
-  _addFile () {
-    let modalContent = <Text> Hello World </Text>
+  _addFileOptions () {
+    let modalContent = <View style={{flex: 1}}>
+      {this._createClickableRow(
+        {
+          onPress: () => console.log('Created folder!'),
+          touchableStyle: styles.fileRow,
+          icon: 'ios-add-outline',
+          text: 'Create a folder',
+          textColor: '#262626'
+        }
+      )}
+      {this._createClickableRow(
+        {
+          onPress: () => console.log('Downloading...'),
+          touchableStyle: styles.fileRow,
+          icon: 'ios-download',
+          text: 'Download a file',
+          textColor: '#262626'
+        }
+      )}
+      {this._createClickableRow(
+        {
+          onPress: () => console.log('Opening selector...'),
+          touchableStyle: styles.fileRow,
+          icon: 'ios-images',
+          text: 'Add an image',
+          textColor: '#262626'
+        }
+      )}
+      {this._createClickableRow(
+        {
+          onPress: () => this._addTestFiles(),
+          touchableStyle: styles.fileRowBottom,
+          icon: 'ios-folder-open',
+          text: 'Add dummy files',
+          textColor: '#262626'
+        }
+      )}
+    </View>
+
     this.setState({
       showModal: true,
       modalContent
@@ -290,7 +333,7 @@ export default class FileSystemView extends React.Component {
       )
       addButton = (
         <TouchableBounce
-          onPress={() => this._addFile()}
+          onPress={() => this._addFileOptions()}
           style={styles.addButtonContainer}>
           <Ionicons
             name={'ios-add-outline'}
@@ -302,25 +345,21 @@ export default class FileSystemView extends React.Component {
 
     let modal = (
       <Modal
-        animationType='slide'
-        transparent={false}
-        visible={this.state.showModal}
-        onRequestClose={() => {alert("Modal has been closed.")}}
-      >
+        isVisible={this.state.showModal}
+        style={styles.modal}
+        onBackdropPress={() => this.setState({showModal: false})}>
+
         <View>
           {this.state.modalContent}
-          <TouchableOpacity
-            onPress={() => this.setState({showModal: false})}
-            >
-            <Text>Close</Text>
-          </TouchableOpacity>
         </View>
+
       </Modal>
     )
 
     return (
       <View style={styles.container}>
         <StatusBar hidden={true} />
+
         <View style={styles.header}>
           {backButton}
           <Text style={styles.headerText}>
@@ -340,6 +379,7 @@ export default class FileSystemView extends React.Component {
 
   // optional add in if first time running the app. generates some files.
   _addTestFiles () {
+    console.log('Adding dummy files...')
     let options = {
       intermediates: true
     }
@@ -351,26 +391,26 @@ export default class FileSystemView extends React.Component {
       trolled: true
     }
     try {
-      FileSystem.deleteAsync(FileSystem.documentDirectory)
-      FileSystem.deleteAsync(FileSystem.cacheDirectory)
-
-      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'cool_folder/secret', options)
-      FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'example.json', JSON.stringify(example, null, '\t'))
-      FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money', options)
-      FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'cool_folder/secret/passwords.json', JSON.stringify(passwords, null, '\t'))
-
-      FileSystem.downloadAsync(
-        'http://pngimg.com/uploads/cat/cat_PNG1631.png',
-        FileSystem.documentDirectory + 'cat.png'
-      )
-      FileSystem.downloadAsync(
-        'http://techslides.com/demos/sample-videos/small.mp4',
-        FileSystem.documentDirectory + 'small.mp4'
-      )
-      FileSystem.downloadAsync(
-        'http://pngimg.com/uploads/falling_money/falling_money_PNG15438.png',
-        FileSystem.cacheDirectory + 'cache_money/wealth_creation.png'
-      )
+      // FileSystem.deleteAsync(FileSystem.documentDirectory)
+      // FileSystem.deleteAsync(FileSystem.cacheDirectory)
+      //
+      // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'cool_folder/secret', options)
+      // FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'example.json', JSON.stringify(example, null, '\t'))
+      // FileSystem.makeDirectoryAsync(FileSystem.cacheDirectory + 'cache_money', options)
+      // FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'cool_folder/secret/passwords.json', JSON.stringify(passwords, null, '\t'))
+      //
+      // FileSystem.downloadAsync(
+      //   'http://pngimg.com/uploads/cat/cat_PNG1631.png',
+      //   FileSystem.documentDirectory + 'cat.png'
+      // )
+      // FileSystem.downloadAsync(
+      //   'http://techslides.com/demos/sample-videos/small.mp4',
+      //   FileSystem.documentDirectory + 'small.mp4'
+      // )
+      // FileSystem.downloadAsync(
+      //   'http://pngimg.com/uploads/falling_money/falling_money_PNG15438.png',
+      //   FileSystem.cacheDirectory + 'cache_money/wealth_creation.png'
+      // )
 
       // FileSystem.getInfoAsync(FileSystem.documentDirectory).then((info) => console.log(info))
     } catch (error) {
@@ -453,6 +493,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'stretch',
     justifyContent: 'flex-start'
+  },
+  fileRowBottom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    justifyContent: 'flex-start'
+  },
+  modal: {
+    flex: .3,
+    backgroundColor: '#f7f7f7',
+    borderRadius: 10,
+    justifyContent: 'flex-end',
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    left: 0,
+    padding: 5
   },
   footer: {
     // borderWidth: 1,
