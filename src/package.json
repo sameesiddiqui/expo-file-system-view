@@ -1,0 +1,14 @@
+{
+  "name": "expo-file-system-view",
+  "version": "0.1.1",
+  "description": "React component for viewing & debugging your expo app file system",
+  "author": "Samee Siddiqui",
+  "main": "index.js",
+  "dependencies": {
+    "@expo/videoplayer": "0.1.8",
+    "expo": "^21.0.0",
+    "react": "16.0.0-alpha.12",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-21.0.2.tar.gz",
+    "react-native-modal": "^4.0.0"
+  }
+}

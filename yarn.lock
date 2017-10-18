@@ -1434,6 +1434,16 @@ expand-range@^1.8.1:
   dependencies:
     fill-range "^2.1.0"
 
+expo-file-system-view@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/expo-file-system-view/-/expo-file-system-view-0.1.1.tgz#529feb63d04281da62f3fa01afd1acad8289a9a8"
+  dependencies:
+    "@expo/videoplayer" "0.1.8"
+    expo "^21.0.0"
+    react "16.0.0-alpha.12"
+    react-native "https://github.com/expo/react-native/archive/sdk-21.0.2.tar.gz"
+    react-native-modal "^4.0.0"
+
 expo@^21.0.0:
   version "21.0.2"
   resolved "https://registry.yarnpkg.com/expo/-/expo-21.0.2.tgz#8420b9f4b95503c464575a31fd9c820363caef9d"
@@ -3624,8 +3634,8 @@ supports-color@^2.0.0:
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-2.0.0.tgz#535d045ce6b6363fa40117084629995e9df324c7"
 
 supports-color@^4.0.0:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-4.4.0.tgz#883f7ddabc165142b2a61427f3352ded195d1a3e"
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-4.5.0.tgz#be7a0de484dec5c5cddf8b3d59125044912f635b"
   dependencies:
     has-flag "^2.0.0"
 

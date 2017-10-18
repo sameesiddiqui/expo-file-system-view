@@ -1,6 +1,6 @@
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
-import FileSystemView from './components/file-system-view'
+import FileSystemView from 'expo-file-system-view'
 
 export default class App extends React.Component {
   render () {
