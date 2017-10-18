@@ -1,12 +1,16 @@
 # expo-file-system-view
 Drop-in component for viewing your expo app file system.
+
+Code for component is under `src/`
+Clone the repo to play around with the component in a simple app.
+
+## Install
 ---
 `npm install expo-file-system-view`
 
 ## Simple use case
-Clone this repo to see an example with dummy files
-OR
-drop it in your own app:
+---
+Drop it anywhere in your own app:
 ```javascript
 import React from 'react'
 import { View } from 'react-native'
