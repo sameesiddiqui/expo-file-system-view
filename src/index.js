@@ -27,6 +27,7 @@ export default class FileSystemView extends React.Component {
   }
 
   componentWillMount () {
+    this.changeDirectory('Home')
     // UNCOMMENT this to automatically add test files on start
     // this.addTestFiles()
   }
