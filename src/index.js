@@ -27,7 +27,8 @@ export default class FileSystemView extends React.Component {
   }
 
   componentWillMount () {
-    this.addTestFiles()
+    // UNCOMMENT this to automatically add test files on start
+    // this.addTestFiles()
   }
 
   // check the type of the item (folder, pdf, .txt, etc)
