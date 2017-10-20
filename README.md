@@ -8,7 +8,7 @@ Check out the [demo](https://expo.io/@samee/expo-file-system-view) to play aroun
 >Note: Due to a bug in Expo.FileSystem read permissions for root directories on Android, this component currently only works on iOS. You can track the issue [here](https://github.com/expo/expo/issues/776) 
 
 ## Install
-`npm install --save expo-file-system-view`
+`npm install --save expo-file-system-view` or `yarn add expo-file-system-view`
 
 <img src='./document.png' width='250'> <img src='./add.png' width='250'>
 
