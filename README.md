@@ -6,7 +6,6 @@ Code for component is under `src/`
 Clone the repo to play around with the component in a simple app.
 
 <img src='./document.png' width='250'>
-<br>
 <img src='./add.png' width='250'>
 
 ## Install
