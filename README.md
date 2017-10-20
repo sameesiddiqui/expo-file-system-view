@@ -5,6 +5,10 @@ Code for component is under `src/`
 
 Clone the repo to play around with the component in a simple app.
 
+<img src='./document.png' width='400'>
+<br>
+<img src='./add.png' width='400'>
+
 ## Install
 `npm install expo-file-system-view`
 
