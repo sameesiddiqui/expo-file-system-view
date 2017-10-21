@@ -9,7 +9,8 @@ import {
   Image,
   StatusBar,
   TextInput,
-  ScrollView
+  ScrollView,
+  Clipboard
 } from 'react-native'
 import Modal from 'react-native-modal'
 import { Ionicons } from '@expo/vector-icons'
@@ -23,7 +24,8 @@ export default class FileSystemView extends React.Component {
     previousDirectory: [],
     header: ['Home'],
     showModal: false,
-    modalContent: null
+    modalContent: null,
+    inputText: null
   }
 
   componentWillMount () {
@@ -275,7 +277,7 @@ export default class FileSystemView extends React.Component {
   }
 
   addFileOptions () {
-    let modalContent = <View style={{flex: 1}}>
+    let modalContent = <View>
       {this.createClickableRow(
         {
           onPress: () => this.getTextInput('filename', 'folder'),
@@ -321,23 +323,29 @@ export default class FileSystemView extends React.Component {
   }
 
   async createFolder (folderName) {
-    try {
-      await FileSystem.makeDirectoryAsync(this.state.currentDirectory + folderName)
-      this.refreshFolder()
-    } catch (e) {
-      console.log('Couldnt create the folder: ', e)
+    // check if text field was empty
+    if (folderName) {
+      try {
+        await FileSystem.makeDirectoryAsync(this.state.currentDirectory + folderName)
+        this.refreshFolder()
+      } catch (e) {
+        console.log('Couldnt create the folder: ', e)
+      }
     }
   }
 
   async downloadFile (url) {
-    try {
-      let { uri } = await FileSystem.downloadAsync(
-        url,
-        this.state.currentDirectory + (url.split('/').join(''))
-      )
-      this.refreshFolder()
-    } catch (e) {
-      console.log('Couldn\'t download from the uri: ', e)
+    // check if field was null
+    if (url) {
+      try {
+        let { uri } = await FileSystem.downloadAsync(
+          url,
+          this.state.currentDirectory + (url.split('/').join(''))
+        )
+        this.refreshFolder()
+      } catch (e) {
+        console.log('Couldn\'t download from the uri: ', e)
+      }
     }
   }
 
@@ -352,18 +360,35 @@ export default class FileSystemView extends React.Component {
     }
   }
 
-  getTextInput (placeholder, callback) {
-    let cb = () => this.createFolder(this.input._lastNativeText)
+  async getClipboardUrl () {
+    let content = await Clipboard.getString()
+    let url = content.split(':')
+    if (url[0] === 'http' || url[0] === 'https') {
+      this.setState({inputText: content})
+      return content
+    } else {
+      return null
+    }
+  }
+
+  async getTextInput (placeholder, callback) {
+    this.setState({inputText: null})
+    let handleSubmit = () => this.createFolder(this.state.inputText)
+    let defaultValue = null
     if (callback === 'download') {
-      cb = () => this.downloadFile(this.input._lastNativeText)
+      defaultValue = await this.getClipboardUrl()
+      handleSubmit = () => this.downloadFile(this.state.inputText)
     }
     let modalContent = <TextInput
       ref={(input) => this.input = input}
       autoCapitalize={'none'}
       autoCorrect={false}
+      autoFocus={true}
+      onChangeText={(text) => this.setState({inputText: text})}
+      defaultValue={defaultValue}
       placeholder={placeholder}
       returnKeyType={'go'}
-      onSubmitEditing={cb}
+      onSubmitEditing={handleSubmit}
       style={styles.text}
     />
     this.setState({
@@ -414,9 +439,10 @@ export default class FileSystemView extends React.Component {
       <Modal
         isVisible={this.state.showModal}
         style={styles.modal}
+        avoidKeyboard={true}
         onBackdropPress={() => this.setState({showModal: false})}>
 
-        <View>
+        <View style={styles.modalContent}>
           {this.state.modalContent}
         </View>
 
@@ -445,7 +471,6 @@ export default class FileSystemView extends React.Component {
     )
   }
 
-  // optional add in if first time running the app. generates some files.
   addTestFiles () {
     console.log('Adding dummy files...')
     let options = {
@@ -491,24 +516,17 @@ export default class FileSystemView extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
-    // borderWidth: 1,
-    // borderColor: '#000',
     backgroundColor: '#f7f7f7',
     flex: 1,
     alignSelf: 'stretch'
   },
   header: {
-    // borderWidth: 1,
-    // borderColor: '#000',
     flexDirection: 'row',
     alignItems: 'center',
-    // justifyContent: 'center',
     height: 56,
     backgroundColor: '#2188FF',
   },
   backButton: {
-    // borderWidth: 1,
-    // borderColor: '#000',
     color: '#F8F8F9',
     width: 32,
     marginLeft: 15,
@@ -529,18 +547,13 @@ const styles = StyleSheet.create({
     alignSelf: 'center'
   },
   headerText: {
-    // borderWidth: 1,
-    // borderColor: '#000',
     color: '#F8F8F9',
     alignItems: 'center',
     flex: 1,
     marginLeft: 15,
-    // height: 32,
     fontSize: 16
   },
   icons: {
-    // borderWidth: 1,
-    // borderColor: '#000',
     color: '#2188FF',
     margin: 15,
     width: 32
@@ -570,19 +583,14 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start'
   },
   modal: {
-    flex: .3,
-    backgroundColor: '#f7f7f7',
-    borderRadius: 10,
     justifyContent: 'flex-end',
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    left: 0,
+  },
+  modalContent: {
+    borderRadius: 10,
+    backgroundColor: '#f7f7f7',
     padding: 5
   },
   footer: {
-    // borderWidth: 1,
-    // borderColor: '#000',
     justifyContent: 'flex-end',
     position: 'absolute',
     bottom: 0,

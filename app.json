@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "file-system-view-demo",
-    "description": "An empty new project",
-    "slug": "file-system-view",
+    "description": "Demo of FileSystemView component",
+    "slug": "expo-file-system-view",
     "privacy": "public",
     "sdkVersion": "21.0.0",
     "version": "1.0.0",

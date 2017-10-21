@@ -1,7 +1,7 @@
 {
   "name": "file-system-view-demo",
   "version": "0.1.0",
-  "description": "Test App environment for FileSystemView",
+  "description": "Demo of FileSystemView component",
   "author": "Samee Siddiqui",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
