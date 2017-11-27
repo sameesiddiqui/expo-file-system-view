@@ -5,7 +5,9 @@ Hate managing file system code? Annoyed of tediously checking if files get saved
 
 Check out the [demo](https://expo.io/@samee/expo-file-system-view) to play around with it.
 
->Note: Due to a bug in Expo.FileSystem read permissions for root directories on Android, this component currently only works on iOS. You can track the issue [here](https://github.com/expo/expo/issues/776)
+>Note: Due to a bug in Expo.FileSystem read permissions for root directories on Android, this component currently only works on iOS. You can track the issue [here](https://github.com/expo/expo/issues/776) 
+
+>** UPDATE: this bug has been fixed in expo sdk 23. In the process of upgrading.
 
 ## Install
 `npm install --save expo-file-system-view` or `yarn add expo-file-system-view`
