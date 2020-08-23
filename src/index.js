@@ -11,9 +11,9 @@ import {
   StatusBar,
   TextInput,
   ScrollView,
-  Clipboard,
 } from 'react-native'
 import Modal from 'react-native-modal';
+import Clipboard from "@react-native-community/clipboard";
 import { Ionicons } from '@expo/vector-icons';
 
 export default class FileSystemView extends React.Component {
