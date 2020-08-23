@@ -1,6 +1,7 @@
-import React from 'react'
-import { FileSystem, Video, Audio, ImagePicker } from 'expo'
-import VideoPlayer from '@expo/videoplayer'
+import React from 'react';
+import * as FileSystem from 'expo-file-system';
+import { Video, Audio } from 'expo-av';
+import * as ImagePicker from 'expo-image-picker';
 import {
   TouchableOpacity,
   View,
@@ -10,11 +11,10 @@ import {
   StatusBar,
   TextInput,
   ScrollView,
-  Clipboard
+  Clipboard,
 } from 'react-native'
-import Modal from 'react-native-modal'
-import { Ionicons } from '@expo/vector-icons'
-import TouchableBounce from 'react-native/Libraries/Components/Touchable/TouchableBounce';
+import Modal from 'react-native-modal';
+import { Ionicons } from '@expo/vector-icons';
 
 export default class FileSystemView extends React.Component {
 
@@ -91,24 +91,19 @@ export default class FileSystemView extends React.Component {
         fileContents = <Image source={{uri: path }} style={{alignSelf:'center', width: 300, height: 300}}/>
       } else if (fileType === 'video') {
         // show video file in video player
-        fileContents = <VideoPlayer
-          videoProps={{
-            source: { uri: path },
-            rate: 1.0,
-            volume: 1.0,
-            muted: false,
-            resizeMode: Video.RESIZE_MODE_CONTAIN,
-            shouldPlay: true,
-            isLooping: true,
-            style: { width: 300, height: 300 }
-          }}
-          switchToLandscape={() => {}}
-          isPortrait={true}
-          playFromPositionMillis={0}
+        fileContents = <Video
+          source={{ uri: path }}
+          rate={1.0}
+          volume={1.0}
+          isMuted={false}
+          resizeMode="contain"
+          shouldPlay
+          isLooping
+          style={{ width: 300, height: 300 }}
         />
       } else if (fileType === 'audio') {
         fileContents = <Text> Audio is playing! </Text>
-        const playbackObject = await Expo.Audio.Sound.create(
+        const playbackObject = await Audio.Sound.create(
           { uri: path },
           { shouldPlay: true }
         )
@@ -282,7 +277,7 @@ export default class FileSystemView extends React.Component {
         {
           onPress: () => this.getTextInput('filename', 'folder'),
           touchableStyle: styles.fileRow,
-          icon: 'ios-add-outline',
+          icon: 'ios-add',
           text: 'Create a folder',
           textColor: '#262626'
         }
@@ -423,14 +418,14 @@ export default class FileSystemView extends React.Component {
       // dont show add button when we're looking at a file
       if (isDirectory) {
         addButton = (
-          <TouchableBounce
+          <TouchableOpacity
             onPress={() => this.addFileOptions()}
             style={styles.addButtonContainer}>
             <Ionicons
-              name={'ios-add-outline'}
+              name="ios-add"
               size={35}
               style={styles.addButton} />
-          </TouchableBounce>
+          </TouchableOpacity>
         )
       }
     }
@@ -484,8 +479,9 @@ export default class FileSystemView extends React.Component {
       trolled: true
     }
     try {
-      FileSystem.deleteAsync(FileSystem.documentDirectory)
-      FileSystem.deleteAsync(FileSystem.cacheDirectory)
+      // Commenting it to not accidentally delete all user's files!
+      // FileSystem.deleteAsync(FileSystem.documentDirectory)
+      // FileSystem.deleteAsync(FileSystem.cacheDirectory)
 
       FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'cool_folder/secret', options)
       FileSystem.writeAsStringAsync(FileSystem.documentDirectory + 'example.json', JSON.stringify(example, null, '\t'))
