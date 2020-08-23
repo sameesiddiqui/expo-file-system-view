@@ -1,6 +1,6 @@
 {
   "name": "file-system-view-demo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Demo of FileSystemView component",
   "author": "Samee Siddiqui",
   "private": true,
