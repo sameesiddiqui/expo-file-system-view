@@ -37,11 +37,11 @@ export default class FileSystemView extends React.Component {
   // check the type of the item (folder, pdf, .txt, etc)
   async resolveItem (currentDirectory, item = '') {
     let metadata = await FileSystem.getInfoAsync(currentDirectory + item)
-    let fileType = item.split('.').pop()
+    let fileType = item.split('.').pop().toLowerCase();
 
     // file types - each has a unique image and way it will be displayed in getFileContents
     let code = new Set(['js', 'json', 'css', 'html'])
-    let image = new Set(['jpg', 'png', 'ico', 'svg', 'pdf'])
+    let image = new Set(['jpg', 'png', 'ico', 'svg', 'pdf', 'heic'])
     let audio = new Set(['mp3'])
     let video = new Set(['mp4'])
     if (metadata.isDirectory && item !== '') {
